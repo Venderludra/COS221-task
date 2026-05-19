@@ -1,0 +1,30 @@
+#restaurant-container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:20px;
+    padding:20px;
+}
+
+.restaurant-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+    transition:0.3s;
+}
+
+.restaurant-card:hover{
+    transform:translateY(-5px);
+}
+
+.restaurant-title{
+    font-size:24px;
+    font-weight:bold;
+    margin-bottom:15px;
+    color:#333;
+}
+
+.restaurant-info{
+    margin:10px 0;
+    color:#555;
+}

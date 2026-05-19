@@ -82,13 +82,17 @@ class API {
             case 'GetPackageByID':
                 $this->editPackage($input);
                 return;
-
-            case 'Register':
-                $this->handleRegister($input);
-                break;
             
             case "DeletePackage":
                 $this->deletePackage($input);
+                break;
+
+            case 'GetAllAgencies':
+                $this->handleGetAllAgencies($input);
+                break;
+
+            case 'Register':
+                $this->handleRegister($input);
                 break;
             
             default:
@@ -557,7 +561,7 @@ class API {
             }
 
     }
-    
+
     private function getPackageByID($data){
 
         // =========================================
@@ -780,7 +784,7 @@ class API {
                 return;
             }
 
-            //api key valifation
+            //api key validation
             $query = "
                 SELECT AgencyID
                 FROM Agency
@@ -800,16 +804,15 @@ class API {
                 $this->sendError("Agency not registered",401);
                 return;
             }
-            // =========================================
+
             // GET AGENCY ID
-            // =========================================
             $row = $result->fetch_assoc();
 
             $AgencyID = $row['AgencyID'];
 
-            // =========================================
+
             // GET PACKAGE DATA
-            // =========================================
+
             $package_name =
                 trim($data['package_name'] ?? '');
 
@@ -828,9 +831,9 @@ class API {
             $package_type =
                 trim($data['package_type'] ?? '');
 
-            // =========================================
+
             // VALIDATION
-            // =========================================
+
             if(
                 empty($package_name) ||
                 empty($destination) ||
@@ -841,17 +844,12 @@ class API {
                 empty($package_type)
             ){
 
-                $this->sendError(
-                    "All fields are required",
-                    400
-                );
-
+                $this->sendError("All fields are required",400);
                 return;
             }
 
-            // =========================================
             // INSERT PACKAGE
-            // =========================================
+
             $insertQuery = "
                 INSERT INTO TravelPackage(
                     AgencyID,
@@ -1029,12 +1027,35 @@ class API {
         }
 
         //retrieve all available flights
-        $flightQuery = "SELECT Airline,Price,FlightDuration,DepartureAirport,ArrivalAirport,DepartureTime,DepartureDate FROM Flight";
+        $flightQuery = "SELECT 
+            f.FlightID,
+            f.Airline,
+            f.Price,
+            f.FlightDuration,
+            f.DepartureAirport,
+            f.ArrivalAirport,
+            f.FlightNumber,
+            f.DepartureTime,
+            f.DepartureDate,
+            tp.Title
+
+            FROM Flight f
+
+            INNER JOIN TravelPackage tp
+            ON f.PackageID = tp.PackageID
+        ";
+
         $smst = $this->db->prepare($flightQuery);
         $smst->execute();
     
         $result = $smst->get_result();
-        $flights = $result->fetch_all(MYSQLI_ASSOC);
+
+        $flights = [];
+
+        while($row = $result->fetch_assoc()){
+            $flights[] = $row;
+        }
+
         $this->sendSuccess($flights);
         return; 
     }
@@ -1048,6 +1069,8 @@ class API {
             }
 
             $query = "SELECT CustomerID FROM Customer WHERE Apikey = ?";
+
+
             $smst = $this->db->prepare($query);
             $smst->bind_param('s',$api_key);
 
@@ -1055,23 +1078,45 @@ class API {
             $result = $smst->get_result();
 
             if($result->num_rows == 0){
-                $this->sendError("User is not Registered",400);
+                $this->sendError("User is not Registered",401);
                 return;
             }
 
             $row = $result->fetch_assoc();
             $CustomerID = $row['CustomerID'];
 
-            $bookingQuery = "SELECT * FROM Bookings WHERE Customer_id = ?";
+            $bookingQuery = "
+                b.BookingID,
+                b.NumberOfPeople,
+                b.BookingDate,
+                b.Type,
+                tp.Title,
+                tp.Total_price,
+                tp.Start_date,
+                tp.End_date
+
+                FROM Booking b
+
+                INNER JOIN TravelPackage tp
+                ON b.PackageID = tp.PackageID
+
+                WHERE b.CustomerID = ?";
+
             $smst = $this->db->prepare($bookingQuery);
             $smst->bind_param("i",$CustomerID);
             $smst->execute();
             $result = $smst->get_result();
 
-            $flights = $result->fetch_all(MYSQLI_ASSOC);
+            $bookings = [];
 
-            $this->sendSuccess($flights);
+            while($row = $result->fetch_assoc()){
+                $bookings[] = $row;
+
+            }
+
+            $this->sendSuccess($bookings);
             return;
+
         }
 
         private function handleAllRestaurant($data){
@@ -1087,14 +1132,35 @@ class API {
                 return;
             }
 
-            $restaurantQuery = "SELECT * FROM Restaurant";
+            $restaurantQuery = "
+            
+                SELECT
+                    r.RestaurantID,
+                    r.Name,
+                    r.StreetNo,
+                    r.StreetName,
+                    r.Rating,
+                    d.City,
+                    d.Country,
+                    d.Province
+
+                FROM Restaurant r
+
+                INNER JOIN Destination d
+                ON r.DestinationID = d.DestinationID
+            ";
+
+
             $smst = $this->db->prepare($restaurantQuery);
             $smst->execute();
             $result = $smst->get_result();
 
-            $restaurant = $result->fetch_all(MYSQLI_ASSOC);
+            $restaurants = [];
+            while($row = $result->fetch_assoc()){
+                $restaurants[] = $row;
+            }
 
-            $this->sendSuccess($restaurantQuery);
+            $this->sendSuccess($restaurants);
             return; 
         }
 

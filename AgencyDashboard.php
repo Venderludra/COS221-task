@@ -11,7 +11,7 @@
 
 <body>
 
-<?php include("agencyNavbar.php"); ?>
+<?php include("AgencyNavBar.php"); ?>
 
 <div class="container">
 
@@ -25,7 +25,7 @@
         <div class="card">
             <h2>Packages</h2>
             <p>Create and manage travel packages</p>
-            <a class="btn" href="managePackages.php">
+            <a class="btn" href="managePackage.php">
                 View Packages
             </a>
         </div>
@@ -41,7 +41,7 @@
         <div class="card">
             <h2>Flights</h2>
             <p>Add flights to packages</p>
-            <a class="btn" href="manageFlights.php">
+            <a class="btn" href="manageFlight.php">
                 Manage Flights
             </a>
         </div>
@@ -49,7 +49,7 @@
         <div class="card">
             <h2>Restaurants</h2>
             <p>Add dining options</p>
-            <a class="btn" href="manageRestaurants.php">
+            <a class="btn" href="manageRestaurant.php">
                 Manage Restaurants
             </a>
         </div>
