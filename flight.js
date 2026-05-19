@@ -120,7 +120,7 @@ function printFlights(flights) {
 
             <div class="flight-info">
                 <strong>Package:</strong>
-                ${flight.Title}
+                ${flight.PackageName}
             </div>
 
             <div class="flight-info">
@@ -144,8 +144,18 @@ function printFlights(flights) {
             </div>
 
             <div class="flight-info">
-                <strong>Duration:</strong>
+                <strong>Flight Duration:</strong>
                 ${flight.FlightDuration}
+            </div>
+
+            <div class="flight-info">
+                <strong>Trip Duration:</strong>
+                ${flight.Duration}
+            </div>
+
+            <div class="flight-info">
+                <strong>Type:</strong>
+                ${flight.PackageType}
             </div>
 
             <div class="flight-price">

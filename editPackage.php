@@ -32,6 +32,10 @@
 
         <input type="date" id="endDate">
 
+        <input type="number" id = 'capacity' placeholder="capacity">
+
+        <input type="number" id = 'duration' placeholder="Trip Duration">
+
         <select id="packageType">
             <option value="Adventure">Adventure</option>
             <option value="Luxury">Luxury</option>
@@ -76,11 +80,11 @@ function loadPackage(){
         if(data.status === "success"){
 
             const p = data.data;
-
             document.getElementById("packageName").value = p.PackageName;
-            document.getElementById("destination").value = p.Destination;
             document.getElementById("description").value = p.Description;
             document.getElementById("price").value = p.Price;
+            document.getElementById('capacity').value = p.Capacity;
+            document.getElementById('duration').value = p.Duration;
             document.getElementById("startDate").value = p.StartDate;
             document.getElementById("endDate").value = p.EndDate;
             document.getElementById("packageType").value = p.PackageType;
@@ -93,9 +97,7 @@ function loadPackage(){
 
 }
 
-// ======================================
 // UPDATE PACKAGE
-// ======================================
 document.getElementById("editForm")
 .addEventListener("submit", function(e){
 
@@ -112,9 +114,10 @@ document.getElementById("editForm")
             PackageID: packageID,
 
             package_name: document.getElementById("packageName").value,
-            destination: document.getElementById("destination").value,
             description: document.getElementById("description").value,
             price: document.getElementById("price").value,
+            Capacity: document.getElementById('capacity').value,
+            Duration : document.getElementById('duration').value,
             start_date: document.getElementById("startDate").value,
             end_date: document.getElementById("endDate").value,
             package_type: document.getElementById("packageType").value

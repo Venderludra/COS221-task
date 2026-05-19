@@ -46,10 +46,6 @@ class API {
             case 'GetAllDestinations':
                 $this->handleDestination($input);
                 break;
-
-            case 'createPackage':
-                $this->createPackage($input);
-                break;
             
             case "GetAllFlights":
                 $this->handleAllFlights($input);
@@ -78,9 +74,16 @@ class API {
             case 'Login':
                 $this->handleLogin($input);
                 break;
+
+            case 'createPackage':
+                $this->createPackage($input);
+                break;
+            case 'EditPackage':
+                $this->editPackage($input);
+                break;
             
             case 'GetPackageByID':
-                $this->editPackage($input);
+                $this->getPackageByID($input);
                 return;
             
             case "DeletePackage":
@@ -436,6 +439,10 @@ class API {
             $price =
                 $data['price'] ?? null;
 
+            $duration = $data['Duration'] ?? null;
+
+            $capacity = $data['Capacity'] ?? null;
+
             $start_date =
                 $data['start_date'] ?? null;
 
@@ -451,12 +458,13 @@ class API {
             if(
                 empty($PackageID) ||
                 empty($package_name) ||
-                empty($destination) ||
                 empty($description) ||
                 empty($price) ||
                 empty($start_date) ||
                 empty($end_date) ||
-                empty($package_type)
+                empty($package_type) ||
+                empty($capacity) ||
+                empty($duration)
             ){
 
                 $this->sendError(
@@ -511,13 +519,14 @@ class API {
                 UPDATE TravelPackage
 
                 SET
-                    PackageName = ?,
-                    Destination = ?,
+                    Title = ?,
                     Description = ?,
-                    Price = ?,
-                    StartDate = ?,
-                    EndDate = ?,
-                    PackageType = ?
+                    Total_price = ?,
+                    Start_date = ?,
+                    End_date = ?,
+                    PackageType = ?,
+                    Capacity = ?,
+                    Duration = ?
 
                 WHERE PackageID = ?
                 AND AgencyID = ?
@@ -530,15 +539,16 @@ class API {
 
             $smst->bind_param(
 
-                "sssdsssii",
+                "ssdsssiiii",
 
                 $package_name,
-                $destination,
                 $description,
                 $price,
                 $start_date,
                 $end_date,
                 $package_type,
+                $capacity,
+                $duration,
                 $PackageID,
                 $AgencyID
             );
@@ -812,6 +822,7 @@ class API {
 
 
             // GET PACKAGE DATA
+            $capacity = $data['Capacity'] ?? null;
 
             $package_name =
                 trim($data['package_name'] ?? '');
@@ -821,6 +832,8 @@ class API {
 
             $price =
                 $data['price'] ?? null;
+
+            $duration = $data['duration'] ?? null;
 
             $start_date =
                 $data['start_date'] ?? null;
@@ -836,12 +849,13 @@ class API {
 
             if(
                 empty($package_name) ||
-                empty($destination) ||
                 empty($description) ||
                 empty($price) ||
                 empty($start_date) ||
                 empty($end_date) ||
-                empty($package_type)
+                empty($package_type)||
+                empty($duration) ||
+                empty($capacity)
             ){
 
                 $this->sendError("All fields are required",400);
@@ -858,10 +872,12 @@ class API {
                     Total_price,
                     Start_date,
                     End_date,
-                    Type
+                    PackageType,
+                    Duration,
+                    Capacity
                 )
 
-                VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES(?, ?, ?, ?, ?, ?, ?, ? ,?)
 
             ";
 
@@ -871,7 +887,7 @@ class API {
 
             $smst->bind_param(
 
-                "isssdsss",
+                "isssdssii",
 
                 $AgencyID,
                 $package_name,
@@ -879,20 +895,18 @@ class API {
                 $price,
                 $start_date,
                 $end_date,
-                $package_type
+                $package_type,
+                $duration,
+                $capacity
             );
 
-            // =========================================
             // EXECUTE INSERT
-            // =========================================
             if($smst->execute()){
                 $this->sendSuccess("Insert Successful");
                 return;
             }
 
-            // =========================================
             // INSERT FAILED
-            // =========================================
             else{
 
                 $this->sendError("Failed to create package",500);
@@ -903,9 +917,8 @@ class API {
 
     private function deletePackage($data){
 
-        // =========================================
+
         // API KEY CHECK
-        // =========================================
         $api_key = $data['api_key'] ?? null;
 
         if(empty($api_key)){
@@ -918,9 +931,7 @@ class API {
             return;
         }
 
-        // =========================================
         // VALIDATE AGENCY
-        // =========================================
         $query = "
             SELECT AgencyID
             FROM Agency
@@ -946,9 +957,8 @@ class API {
         $agency = $result->fetch_assoc();
         $AgencyID = $agency['AgencyID'];
 
-        // =========================================
+
         // GET PACKAGE ID
-        // =========================================
         $PackageID = $data['PackageID'] ?? null;
 
         if(empty($PackageID)){
@@ -961,9 +971,8 @@ class API {
             return;
         }
 
-        // =========================================
+
         // CHECK OWNERSHIP
-        // =========================================
         $checkQuery = "
             SELECT PackageID
             FROM TravelPackage
@@ -979,17 +988,11 @@ class API {
 
         if($result->num_rows == 0){
 
-            $this->sendError(
-                "Package not found or access denied",
-                403
-            );
-
+            $this->sendError("Package not found or access denied",403);
             return;
         }
 
-        // =========================================
         // DELETE PACKAGE
-        // =========================================
         $deleteQuery = "
             DELETE FROM TravelPackage
             WHERE PackageID = ?
@@ -1004,13 +1007,9 @@ class API {
             return;
         }
 
-        // =========================================
         // ERROR
-        // =========================================
-        $this->sendError(
-            "Failed to delete package",
-            500
-        );
+        $this->sendError("Failed to delete package",500);
+        return;
 }
 
     private function handleAllFlights($data){
@@ -1037,7 +1036,10 @@ class API {
             f.FlightNumber,
             f.DepartureTime,
             f.DepartureDate,
-            tp.Title
+            tp.Title AS PackageName,
+
+            tp.PackageType,
+            tp.Duration
 
             FROM Flight f
 
@@ -1060,7 +1062,7 @@ class API {
         return; 
     }
 
-        private function handleBookings($data){
+    private function handleBookings($data){
             $api_key = $data['api_key'] ?? null;
 
             if(empty($api_key)){
@@ -1086,12 +1088,13 @@ class API {
             $CustomerID = $row['CustomerID'];
 
             $bookingQuery = "
+                SELECT
                 b.BookingID,
                 b.NumberOfPeople,
                 b.BookingDate,
                 b.Type,
-                tp.Title,
-                tp.Total_price,
+                tp.Title AS PackageName,
+                tp.Total_price As TotalPrice,
                 tp.Start_date,
                 tp.End_date
 
@@ -1117,9 +1120,9 @@ class API {
             $this->sendSuccess($bookings);
             return;
 
-        }
+    }
 
-        private function handleAllRestaurant($data){
+    private function handleAllRestaurant($data){
             $api_key = $data['api_key'] ?? null;
 
             if(empty($api_key)){
@@ -1170,7 +1173,7 @@ class API {
             //make it hex readeable
             $random = bin2hex($randombytes);
             return $random;
-        }
+    }
 
     private function secure_password($password,$salt){
             $combinedPassword = $password . $salt;
@@ -1180,7 +1183,7 @@ class API {
                 $hash = hash("sha256", $hash . $i);
             }
             return $hash;
-        }
+    }
 }
 
 // Create and run API

@@ -81,6 +81,9 @@ if(!isset($_SESSION['api_key'])) {
                 required
             >
             
+            <!--How long the trip is-->
+            <input type="number" id="Duration" required>
+
             <!-- PACKAGE TYPE -->
             <select id="packageType" required>
 
@@ -123,9 +126,7 @@ if(!isset($_SESSION['api_key'])) {
 
     <script>
 
-        // =====================================
         // FORM SUBMIT
-        // =====================================
         document
         .getElementById("packageForm")
 
@@ -162,6 +163,8 @@ if(!isset($_SESSION['api_key'])) {
                     .getElementById("price")
                     .value;
 
+                const Duration = document.getElementById("Duration").value;
+
                 const startDate =
                     document
                     .getElementById("startDate")
@@ -192,7 +195,9 @@ if(!isset($_SESSION['api_key'])) {
                     !price ||
                     !startDate ||
                     !endDate ||
-                    !packageType
+                    !packageType ||
+                    !Duration ||
+                    !capacity
                 ) {
 
                     message.innerHTML =
@@ -203,9 +208,8 @@ if(!isset($_SESSION['api_key'])) {
                     return;
                 }
 
-                // =====================================
+
                 // CREATE DATA OBJECT
-                // =====================================
                 const data = {
 
                     type: "CreatePackage",
@@ -215,10 +219,12 @@ if(!isset($_SESSION['api_key'])) {
                     package_name:
                         packageName,
 
-                    capicity: capacity,
+                    Capicity: capacity,
 
                     description:
                         description,
+
+                    duration:Duration,
 
                     price:
                         price,
@@ -235,7 +241,7 @@ if(!isset($_SESSION['api_key'])) {
 
                 // SEND TO API
                 fetch(
-                    "api/api.php",
+                    "api/api.php", //needs to be changed to persons who is demoing
 
                     {
                         method: "POST",

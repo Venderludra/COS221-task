@@ -91,9 +91,7 @@ function printBookings(bookings) {
         return;
     }
 
-    // ======================================
     // CREATE CARDS
-    // ======================================
     bookings.forEach(function (booking) {
 
         const card =
@@ -104,7 +102,7 @@ function printBookings(bookings) {
         card.innerHTML = `
 
             <div class="booking-title">
-                ${booking.Title}
+                ${booking.PackageName}
             </div>
 
             <div class="booking-info">
@@ -129,7 +127,7 @@ function printBookings(bookings) {
 
             <div class="booking-info">
                 <strong>Price:</strong>
-                R${booking.Total_price}
+                R${booking.TotalPrice}
             </div>
 
             <div class="booking-info">
