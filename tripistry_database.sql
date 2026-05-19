@@ -1,4 +1,3 @@
-
 create database tripistry_DB;
 use tripistry_DB;
 
