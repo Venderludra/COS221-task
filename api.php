@@ -143,6 +143,101 @@ class API {
         $this->sendSuccess($agencies);
     }
 
+    private function handleGetAgencyPackages($input)
+    {
+        //join packages with destinations and reviews
+        $sql="SELECT p.PackageID,p.Title,p.Description,p.Total_price,p.Capacity,p.Start_date,p.End_date,p.ImageURL,p.Duration,p.PackageType,
+        a.AgencyName,d.City,d.Country,COALESCE(AVG(r.Rating),0) AS Rating,
+        COUNT(r.Rating) AS ReviewCount
+
+        FROM TravelPackage p
+        JOIN Agency a ON p.AgencyID=a.AgencyID
+        JOIN Includes i ON p.PackageID=i.PackageID
+        JOIN Destination d ON i.DestinationID=d.DestinationID
+        LEFT JOIN Review r ON p.PackageID=r.PackageID
+        WHERE 1=1";
+
+        $params=[];
+        $types="";
+
+        //Filters
+        //Destination
+        if(!empty($input['destination'])){
+            $sql.=" AND d.City LIKE ?";
+            $params[]="%" .$input['destination']."%";
+            $types.="s";
+        }
+
+        //Price range
+        if(isset($input['min_price'])&& is_numeric($input['min_price'])){
+            $sql=" AND p.Total_price >= ?";
+            $params[]=(float)$input['min_price'];
+            $types.="d";
+        }
+
+        if(isset($input['max_price'])&&is_numeric($input['max_price'])){
+            $sql.=" AND p.Total_price <= ?";
+            $params[]=(float)$input['max_price'];
+            $types.="d";
+        }
+
+        //Duration
+        if(isset($input['min_duration'])&& is_numeric($input['min_duration'])){
+            $sql.=" AND p.Duration >= ?";
+            $params[]=(int)$input['min_duration'];
+            $types.="i";
+        }
+
+        $sql.="GROUP BY p.PackageID";
+
+        if(isset($input['min_rating'])  && is_numeric($input['min_rating'])){
+            $sql.=" HAVING Rating>=?";
+            $params[]=(float)$input['min_rating'];
+            $types.="d";
+        }
+
+        //Sorting
+        $allowedSort = ['price_asc', 'price_desc', 'duration_asc', 'duration_desc', 'rating_desc'];
+        $sort = isset($input['sort']) && in_array($input['sort'], $allowedSort) ? $input['sort'] : 'rating_desc';
+        switch ($sort) {
+            case 'price_asc':
+                $sql .= " ORDER BY p.Total_price ASC";
+                break;
+            case 'price_desc':
+                $sql .= " ORDER BY p.Total_price DESC";
+                break;
+            case 'duration_asc':
+                $sql .= " ORDER BY p.Duration ASC";
+                break;
+            case 'duration_desc':
+                $sql .= " ORDER BY p.Duration DESC";
+                break;
+            default:
+                $sql .= " ORDER BY Rating DESC";
+        }
+        
+        // Prepare and execute
+        $stmt = $this->db->prepare($sql);
+        if (!empty($params)) {
+            $stmt->bind_param($types, ...$params);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $packages = [];
+        while ($row = $result->fetch_assoc()) {
+            // Convert numeric fields
+            $row['Total_price'] = (float) $row['Total_price'];
+            $row['Rating'] = round((float) $row['Rating'], 1);
+            $row['ReviewCount'] = (int) $row['ReviewCount'];
+            $packages[] = $row;
+        }
+        $stmt->close();
+        
+        $this->sendSuccess($packages);
+
+    }
+
     private function validateApiKey($apiKey){
         $stmt=$this->db->prepare("SELECT CustomerID FROM Customer WHERE Apikey=? UNION SELECT AgencyID FROM  Agency WHERE Apikey=?");
         $stmt->bind_param("ss",$apiKey,$apiKey);
@@ -717,40 +812,40 @@ class API {
         }
         
         // Handle GetAllAccommodations
-        private function handleAccommodation($input) {
-            try {
-                // Check if specific destination filter is provided
-                if (isset($input['DestinationID']) && !empty($input['DestinationID'])) {
-                    $stmt = $this->db->prepare("SELECT a.*, d.City, d.Country, d.Continent, d.Province 
-                                            FROM Accomodation a
-                                            JOIN Destination d ON a.DestinationID = d.DestinationID
-                                            WHERE a.DestinationID = ?");
-                    $stmt->bind_param("i", $input['DestinationID']);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                } else {
-                    // No filter - get all accommodations with destination info
-                    $stmt = $this->db->prepare("SELECT a.*, d.City, d.Country, d.Continent, d.Province 
-                                            FROM Accomodation a
-                                            JOIN Destination d ON a.DestinationID = d.DestinationID");
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                }
-                
-                $accommodations = [];
-                while ($row = $result->fetch_assoc()) {
-                    $accommodations[] = $row;
-                }
-                
-                $stmt->close();
-                $this->sendSuccess($accommodations);
-            } catch (Exception $e) {
-                $this->sendError($e->getMessage());
+    private function handleAccommodation($input) {
+        try {
+            // Check if specific destination filter is provided
+            if (isset($input['DestinationID']) && !empty($input['DestinationID'])) {
+                $stmt = $this->db->prepare("SELECT a.*, d.City, d.Country, d.Continent, d.Province 
+                                        FROM Accomodation a
+                                        JOIN Destination d ON a.DestinationID = d.DestinationID
+                                        WHERE a.DestinationID = ?");
+                $stmt->bind_param("i", $input['DestinationID']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            } else {
+                // No filter - get all accommodations with destination info
+                $stmt = $this->db->prepare("SELECT a.*, d.City, d.Country, d.Continent, d.Province 
+                                        FROM Accomodation a
+                                        JOIN Destination d ON a.DestinationID = d.DestinationID");
+                $stmt->execute();
+                $result = $stmt->get_result();
             }
+            
+            $accommodations = [];
+            while ($row = $result->fetch_assoc()) {
+                $accommodations[] = $row;
+            }
+            
+            $stmt->close();
+            $this->sendSuccess($accommodations);
+        } catch (Exception $e) {
+            $this->sendError($e->getMessage());
         }
+    }
         
         // Handle Getlaunch
-        private function handlelaunch($input) {
+    private function handlelaunch($input) {
             try {
                 // Get featured packages
                 $stmt = $this->db->prepare("SELECT PackageID, Title, Description, Total_price, Capacity, Start_date, End_date 
@@ -783,9 +878,9 @@ class API {
             } catch (Exception $e) {
                 $this->sendError($e->getMessage());
             }
-        }
+    }
 
-        private function createPackage($data){
+    private function createPackage($data){
             $api_key = $data['api_key'] ?? null;
 
             //check if logged in
@@ -1010,7 +1105,7 @@ class API {
         // ERROR
         $this->sendError("Failed to delete package",500);
         return;
-}
+    }
 
     private function handleAllFlights($data){
         $api_key = $data['api_key'] ?? null;

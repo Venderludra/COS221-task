@@ -10,8 +10,8 @@
 
         <a href="agencyDashboard.php">Dashboard</a>
         <a href="createPackage.php">Create Package</a>
-        <a href="managePackage.php">Packages</a>
-
+        <a href="editPackage.php">Edit Packages</a>
+        
         <span class="logout-btn" onclick="logout()">
             Logout
         </span>

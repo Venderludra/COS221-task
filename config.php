@@ -9,7 +9,7 @@ class Database {
         // Database credentials for LOCAL database (tripistry_DB)
         $host = 'localhost';           // XAMPP MySQL runs on localhost
         $username = 'root';            // Default XAMPP username
-        $password = 'NewPassword123';                // Default XAMPP password is empty
+        $password = '';                // Default XAMPP password is empty
         $database = 'tripistry_DB';    // Your database name
         
         // If you changed MySQL port to 3307 (Solution 2), uncomment this:
