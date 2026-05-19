@@ -1,14 +1,5 @@
 <?php
 
-session_start();
-
-// OPTIONAL:
-// Redirect if not logged in
-if(!isset($_SESSION['api_key'])) {
-
-    die("You must be logged in.");
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -19,10 +10,9 @@ if(!isset($_SESSION['api_key'])) {
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Package</title>
+    <link rel="stylesheet" href="css/createPackage.css">
 
 </head>
 
@@ -125,6 +115,14 @@ if(!isset($_SESSION['api_key'])) {
     </div>
 
     <script>
+        const apiKey = localStorage.getItem("api_key");
+
+        if (!apiKey) {
+
+            alert("You must be logged in");
+
+            window.location.href = "login.html";
+        }
 
         // FORM SUBMIT
         document
@@ -189,8 +187,7 @@ if(!isset($_SESSION['api_key'])) {
                 // VALIDATION
                 // =====================================
                 if(
-                    !packageName ||
-                    !destination ||
+                    !packageTitle ||
                     !description ||
                     !price ||
                     !startDate ||
@@ -214,12 +211,12 @@ if(!isset($_SESSION['api_key'])) {
 
                     type: "CreatePackage",
 
-                    api_key: localStorage.getItem('api_key'),
+                    api_key: apiKey,
                         
                     package_name:
-                        packageName,
+                        packageTitle,
 
-                    Capicity: capacity,
+                    Capacity: capacity,
 
                     description:
                         description,
@@ -287,7 +284,7 @@ if(!isset($_SESSION['api_key'])) {
                         message.innerHTML =
                             "<span class='error'>"
                             +
-                            result.message
+                            result.data
                             +
                             "</span>";
                     }

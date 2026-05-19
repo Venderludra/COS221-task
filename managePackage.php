@@ -1,12 +1,10 @@
-<?php
-session_start();
-?>
 
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Manage Packages</title>
+    <link rel="stylesheet" href="css/managePackage.css">
 </head>
 
 <body>
@@ -18,6 +16,14 @@ session_start();
 <script>
 
 const apiKey = localStorage.getItem("api_key");
+
+    if(!apiKey){
+
+        alert("Please login first");
+
+        window.location.href = "login.html";
+    }
+    
 const container = document.getElementById("container");
 
 // LOAD PACKAGES
@@ -48,11 +54,11 @@ function loadPackages(){
                 
                 <div class="card">
 
-                    <div class="title">${pkg.PackageName}</div>
+                    <div class="title">${pkg.Title}</div>
 
-                    <div>${pkg.StartDate} → ${pkg.EndDate}</div>
+                    <div>${pkg.Start_date} → ${pkg.End_date}</div>
 
-                    <div class="price">R ${pkg.Price}</div>
+                    <div class="price">R ${pkg.Total_price}</div>
 
                     <a class="btn edit"
                        href="editPackage.php?id=${pkg.PackageID}">
@@ -70,7 +76,7 @@ function loadPackages(){
             });
 
         } else {
-            container.innerHTML = data.message;
+            container.innerHTML = data.data;
         }
 
     });
@@ -103,7 +109,7 @@ function deletePackage(id){
         if(data.status === "success"){
             loadPackages();
         } else {
-            alert(data.message);
+            alert(data.data);
         }
     });
 }

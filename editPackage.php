@@ -12,6 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Edit Package</title>
+    <link rel="stylesheet" href="css/editPackage.css">
 </head>
 
 <body>
@@ -80,17 +81,19 @@ function loadPackage(){
         if(data.status === "success"){
 
             const p = data.data;
-            document.getElementById("packageName").value = p.PackageName;
+            document.getElementById("packageName").value = p.Title;
             document.getElementById("description").value = p.Description;
-            document.getElementById("price").value = p.Price;
+            document.getElementById("price").value = p.Total_rice;
+
             document.getElementById('capacity').value = p.Capacity;
             document.getElementById('duration').value = p.Duration;
-            document.getElementById("startDate").value = p.StartDate;
-            document.getElementById("endDate").value = p.EndDate;
+
+            document.getElementById("startDate").value = p.Start_date;
+            document.getElementById("endDate").value = p.End_date;
             document.getElementById("packageType").value = p.PackageType;
 
         } else {
-            msg.innerHTML = data.message;
+            msg.innerHTML = data.data;
         }
 
     });
@@ -131,7 +134,7 @@ document.getElementById("editForm")
         if(data.status === "success"){
             msg.innerHTML = "Package updated successfully!";
         } else {
-            msg.innerHTML = data.message;
+            msg.innerHTML = data.data;
         }
 
     });

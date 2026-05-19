@@ -75,7 +75,7 @@ class API {
                 $this->handleLogin($input);
                 break;
 
-            case 'createPackage':
+            case 'CreatePackage':
                 $this->createPackage($input);
                 break;
             case 'EditPackage':
