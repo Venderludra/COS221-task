@@ -7,6 +7,8 @@
 
 <head>
     <title>Agency Dashboard</title>
+    <link rel="stylesheet" href="css/AgencyDashBoard.css">
+    <link rel="stylesheet" href="css/AgencyNavBar.css">
 </head>
 
 <body>
@@ -37,7 +39,7 @@
                 Create
             </a>
         </div>
-
+    <!--
         <div class="card">
             <h2>Flights</h2>
             <p>Add flights to packages</p>
@@ -53,7 +55,7 @@
                 Manage Restaurants
             </a>
         </div>
-
+    -->
     </div>
 
 </div>
