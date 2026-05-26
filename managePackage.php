@@ -1,14 +1,14 @@
-
 <!DOCTYPE html>
 <html>
 
 <head>
     <title>Manage Packages</title>
     <link rel="stylesheet" href="css/managePackage.css">
+    <link rel="stylesheet" href="css/AgencyNavBar.css">
 </head>
 
 <body>
-
+<?php include("AgencyNavBar.php"); ?>
 <h1>Manage Packages</h1>
 
 <div id="container" class="container"></div>
@@ -21,7 +21,7 @@ const apiKey = localStorage.getItem("api_key");
 
         alert("Please login first");
 
-        window.location.href = "login.html";
+        window.location.href = "login.php";
     }
     
 const container = document.getElementById("container");
@@ -29,14 +29,14 @@ const container = document.getElementById("container");
 // LOAD PACKAGES
 function loadPackages(){
 
-    fetch("api/api.php", {
+    fetch("api.php", {
 
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            type: "GetAgencyPackages",
+            type: "GetAgencyPackagesByID",
             api_key: apiKey
         })
 
@@ -52,7 +52,7 @@ function loadPackages(){
 
                 container.innerHTML += `
                 
-                <div class="card">
+                <div class="card" onclick="viewPackage(${pkg.PackageID})">
 
                     <div class="title">${pkg.Title}</div>
 
@@ -60,13 +60,13 @@ function loadPackages(){
 
                     <div class="price">R ${pkg.Total_price}</div>
 
-                    <a class="btn edit"
-                       href="editPackage.php?id=${pkg.PackageID}">
+                    <button class="btn edit"
+                       onclick="event.stopPropagation(); editPackage(${pkg.PackageID})">
                         Edit
-                    </a>
+                    </button>
 
                     <button class="btn delete"
-                        onclick="deletePackage(${pkg.PackageID})">
+                        onclick="event.stopPropagation(); deletePackage(${pkg.PackageID})">
                         Delete
                     </button>
 
@@ -83,6 +83,9 @@ function loadPackages(){
 
 }
 
+function editPackage(id){
+    window.location.href = `editPackage.php?id=${id}`;
+}
 // ============================
 // DELETE PACKAGE
 // ============================
@@ -90,7 +93,7 @@ function deletePackage(id){
 
     if(!confirm("Delete this package?")) return;
 
-    fetch("api/api.php", {
+    fetch("api.php", {
 
         method: "POST",
         headers: {
@@ -107,11 +110,16 @@ function deletePackage(id){
     .then(data => {
 
         if(data.status === "success"){
+            alert("Package deleted successfully!");
             loadPackages();
         } else {
             alert(data.data);
         }
     });
+}
+
+function viewPackage(id){
+    window.location.href = `viewPackages.php?id=${id}`;
 }
 
 // Load on start
